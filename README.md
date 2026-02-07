@@ -37,7 +37,6 @@ This project is intended for:
 - Demonstration
 - Research
 - Personal tooling
-- Learning Playwright
 
 Policy
 
