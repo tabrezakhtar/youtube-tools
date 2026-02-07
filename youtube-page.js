@@ -1,110 +1,120 @@
-export async function getTitle(page) {
-  await page.waitForSelector('h1 yt-formatted-string', { timeout: 10000 }).catch(() => {});
-  
-  return await page.evaluate(() => {
-    const el = document.querySelector('h1 yt-formatted-string') || document.querySelector('h1');
-    if (el) {
-      const attr = (el.getAttribute && (el.getAttribute('title') || el.getAttribute('aria-label')));
-      if (attr && attr.trim() && attr.trim().length > 0) return attr.trim();
-      const txt = el.textContent && el.textContent.trim();
-      if (txt && txt.length > 0) return txt;
+const DEFAULT_TIMEOUT = 10000;
+
+async function extract(page, selectors, opts = {}) {
+  const timeout = opts.timeout || DEFAULT_TIMEOUT;
+
+  if (opts.waitForSelector) {
+    await page.waitForSelector(opts.waitForSelector, { timeout }).catch(() => {});
+  }
+
+  if (opts.requireDigits) {
+    await page.waitForFunction(
+      selectors => selectors.some(sel => {
+        const el = document.querySelector(sel);
+        return el && /\d/.test((el.innerText || el.textContent || ""));
+      }),
+      { timeout },
+      selectors
+    ).catch(() => {});
+  }
+
+  return await page.evaluate(selectors => {
+    const ATTRS = ["title", "aria-label"];
+
+    for (const sel of selectors) {
+      const el = document.querySelector(sel);
+      if (!el) continue;
+
+      // prefer attribute values
+      for (const a of ATTRS) {
+        const v = el.getAttribute && el.getAttribute(a);
+        if (v && v.trim()) return v.trim();
+      }
+
+      // prefer visible text
+      const txt = (el.innerText || el.textContent || "").trim();
+      if (txt) return txt;
+
+      // try a common inner node
+      const inner = el.querySelector && (el.querySelector('yt-formatted-string') || el.querySelector('span'));
+      if (inner) {
+        const innerTxt = (inner.innerText || inner.textContent || "").trim();
+        if (innerTxt) return innerTxt;
+      }
     }
 
-    const meta = document.querySelector('meta[name="title"]')?.getAttribute('content');
-    if (meta && meta.trim() && meta.trim().length > 0) return meta.trim();
-    if (document.title) {
-      const cleaned = document.title.replace(/\s*-\s*YouTube\s*$/i, '').trim();
-      if (cleaned && cleaned.length > 0) return cleaned;
-    }
     return null;
-  });
+  }, selectors);
+}
+
+function normalize(text, kind) {
+  if (!text) return null;
+  const t = String(text).trim();
+  if (!t) return null;
+
+  if (kind === "title") return t.replace(/\s*-\s*YouTube\s*$/i, "").trim();
+  if (kind === "views") return t.replace(/\s*views?\s*$/i, "").trim();
+  if (kind === "comments") return t.replace(/\s*comments?\s*$/i, "").trim();
+  return t;
+}
+
+export async function getTitle(page) {
+  const raw = await extract(page, ["h1 yt-formatted-string", "h1", 'meta[name="title"]'], { waitForSelector: "h1 yt-formatted-string", timeout: DEFAULT_TIMEOUT });
+  return normalize(raw, "title");
 }
 
 export async function getChannelName(page) {
-  await page.waitForSelector('ytd-channel-name #text a', { timeout: 10000 }).catch(() => {});
-  
-  return await page.evaluate(() => {
-    const container = document.querySelector('ytd-channel-name');
-    if (!container) return null;
-
-    const anchor = container.querySelector('#text a') || container.querySelector('a');
-    if (anchor && anchor.textContent && anchor.textContent.trim() && anchor.textContent.trim().length > 0) {
-      return anchor.textContent.trim();
-    }
-
-    const formatted = container.querySelector('yt-formatted-string#text') || container.querySelector('yt-formatted-string');
-    if (formatted) {
-      const attr = (formatted.getAttribute && (formatted.getAttribute('title') || formatted.getAttribute('aria-label')));
-      if (attr && attr.trim() && attr.trim().length > 0) return attr.trim();
-      const txt = formatted.textContent && formatted.textContent.trim();
-      if (txt && txt.length > 0) return txt;
-    }
-
-    return null;
-  });
+  const raw = await extract(page, ["ytd-channel-name #text a", "ytd-channel-name yt-formatted-string#text", "ytd-channel-name yt-formatted-string"], { waitForSelector: "ytd-channel-name #text a", timeout: DEFAULT_TIMEOUT });
+  return normalize(raw, "channel");
 }
 
 export async function getViews(page) {
-  await page.waitForSelector('#view-count[aria-label]', { timeout: 10000 }).catch(() => {});
-  
-  return await page.evaluate(() => {
-    const el = document.querySelector('#view-count') || document.querySelector('.view-count') || document.querySelector('[aria-label*="view"]');
-
-    if (el) {
-      const aria = el.getAttribute && el.getAttribute('aria-label');
-      if (aria && aria.trim() && aria.trim().length > 0) {
-        const cleaned = aria.replace(/\s*views?\s*$/i, '').trim();
-        if (cleaned && cleaned.length > 0) return cleaned;
-      }
-
-      const txt = (el.innerText || el.textContent || "").trim();
-      if (txt && txt.length > 0) {
-        const cleaned = txt.replace(/\s*views?\s*$/i, '').trim();
-        if (cleaned && cleaned.length > 0) return cleaned;
-      }
-    }
-
-    const metaCount = document.querySelector('meta[itemprop="interactionCount"]')?.getAttribute('content')
-      || document.querySelector('meta[name="interactionCount"]')?.getAttribute('content');
-    if (metaCount && metaCount.trim() && metaCount.trim().length > 0) return metaCount.trim();
-
-    return null;
-  });
+  const raw = await extract(page, ["#view-count", ".view-count", "[aria-label*=\"view\"]"], { waitForSelector: "#view-count", requireDigits: true, timeout: DEFAULT_TIMEOUT });
+  return normalize(raw, "views");
 }
 
 export async function getCommentsCount(page) {
-  await page.waitForFunction(
-    () => {
-      const el = document.querySelector('#count yt-formatted-string');
-      return el && el.textContent && el.textContent.trim().length > 0 && /\d/.test(el.textContent);
-    },
-    { timeout: 10000 }
-  ).catch(() => {});
-  
-  return await page.evaluate(() => {
-    const el = document.querySelector('#count yt-formatted-string') 
-      || document.querySelector('#count') 
-      || document.querySelector('ytd-comments-header-renderer #count') 
-      || document.querySelector('.count-text');
-
-    if (el) {
-      const txt = (el.innerText || el.textContent || "").trim();
-      if (txt && txt.length > 0 && /\d/.test(txt)) {
-        const cleaned = txt.replace(/\s*comments?\s*$/i, '').trim();
-        if (cleaned && cleaned.length > 0) return cleaned;
+  try {
+    await page.evaluate(() => {
+      const commentsSection = document.querySelector("ytd-comments#comments") || document.querySelector("#comments");
+      if (commentsSection) {
+        commentsSection.scrollIntoView({ behavior: "instant", block: "start" });
       }
+    });
 
-      const attr = el.getAttribute && (el.getAttribute('title') || el.getAttribute('aria-label'));
-      if (attr && attr.trim() && attr.trim().length > 0 && /\d/.test(attr)) {
-        const cleaned = attr.replace(/\s*comments?\s*$/i, '').trim();
-        if (cleaned && cleaned.length > 0) return cleaned;
+    await page.waitForTimeout(500);
+
+    await page.waitForFunction(
+      () => {
+        const el = document.querySelector("#count yt-formatted-string.count-text") 
+          || document.querySelector("#count yt-formatted-string")
+          || document.querySelector("ytd-comments-header-renderer #count");
+        if (!el) return false;
+        const txt = (el.innerText || el.textContent || "").trim();
+        return txt && /\d/.test(txt) && txt.length > 0;
+      },
+      { timeout: 15000 }
+    ).catch(() => {});
+
+    const raw = await page.evaluate(() => {
+      const selectors = [
+        "#count yt-formatted-string.count-text",
+        "ytd-comments-header-renderer #count yt-formatted-string",
+        "#count yt-formatted-string",
+        "h2#count"
+      ];
+
+      for (const sel of selectors) {
+        const el = document.querySelector(sel);
+        if (!el) continue;
+        const txt = (el.innerText || el.textContent || "").trim();
+        if (txt && /\d/.test(txt)) return txt;
       }
-    }
+      return null;
+    });
 
-    const metaCount = document.querySelector('meta[itemprop="commentCount"]')?.getAttribute('content')
-      || document.querySelector('meta[name="commentCount"]')?.getAttribute('content');
-    if (metaCount && metaCount.trim() && metaCount.trim().length > 0) return metaCount.trim();
-
+    return normalize(raw, "comments");
+  } catch (err) {
     return null;
-  });
+  }
 }
