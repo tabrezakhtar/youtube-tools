@@ -8,6 +8,7 @@ import { launchPlaywright } from "./playwright-config.js";
 console.log(chalk.blue("Youtube Scraper."));
 
 (async () => {
+  // For testing, you can hardcode a YouTube URL here. If left empty, the script will prompt you to enter one.
   let url = "https://www.youtube.com/watch?v=AjWfY7SnMBI";
 
   if (!url) {

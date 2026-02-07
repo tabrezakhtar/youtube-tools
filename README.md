@@ -19,6 +19,13 @@ A small Node.js utility that extracts visible data from a YouTube video page (ti
    node index.js
    ```
 
+   For testing you can hardcode a URL in `index.js` so the script skips the prompt:
+
+   ```javascript
+   // For testing, you can hardcode a YouTube URL here. If left empty, the script will prompt you to enter one.
+   let url = "https://www.youtube.com/watch?v=AjWfY7SnMBI";
+   ```
+
 3. View browser UI / debug:
 
    ```bash
