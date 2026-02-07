@@ -1,4 +1,4 @@
-# YouTube Live Chat Scraper
+# YouTube Tools
 
 A small Node.js utility that extracts visible data from a YouTube video page (title, channel, views, comments) and can scrape live chat messages. The project uses Playwright for reliable page rendering and a set of focused page extractors in `youtube-page.js`.
 
