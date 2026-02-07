@@ -1,0 +1,60 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "pwa-node",
+            "request": "launch",
+            "name": "Launch Playwright (debug - headful)",
+            "program": "${workspaceFolder}/index.js",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "runtimeArgs": ["--nolazy", "--inspect-brk=9229"],
+            "env": { "PLAYWRIGHT_HEADLESS": "false" },
+            "envFile": "${workspaceFolder}/.env",
+            "skipFiles": ["<node_internals>/**", "${workspaceFolder}/node_modules/**"]
+        },
+        {
+            "type": "pwa-node",
+            "request": "launch",
+            "name": "Launch Playwright (debug - headless)",
+            "program": "${workspaceFolder}/index.js",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "runtimeArgs": ["--nolazy", "--inspect-brk=9229"],
+            "env": { "PLAYWRIGHT_HEADLESS": "true" },
+            "envFile": "${workspaceFolder}/.env",
+            "skipFiles": ["<node_internals>/**", "${workspaceFolder}/node_modules/**"]
+        },
+        {
+            "type": "pwa-node",
+            "request": "attach",
+            "name": "Attach to Node (9229)",
+            "port": 9229,
+            "localRoot": "${workspaceFolder}",
+            "remoteRoot": "${workspaceFolder}"
+        },
+        {
+            "type": "pwa-chrome",
+            "request": "attach",
+            "name": "Attach to Chromium (remote 9222)",
+            "port": 9222,
+            "webRoot": "${workspaceFolder}",
+            "urlFilter": "https://www.youtube.com/*",
+            "timeout": 20000
+        }
+    ],
+    "compounds": [
+      {
+        "name": "Playwright: Debug (Node + Browser)",
+        "configurations": [
+          "Launch Playwright (debug - headful)",
+          "Attach to Chromium (remote 9222)"
+        ]
+      }
+    ]
+}
