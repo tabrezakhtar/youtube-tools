@@ -34,13 +34,11 @@ A small Node.js utility that extracts visible data from a YouTube video page (ti
 
 ## Demo ▶️
 
-<video src="./demo.mp4" controls playsinline width="720">
+<video src="https://res.cloudinary.com/dx8d5hlk1/video/upload/v1770485190/demo_1_ybhchp.mp4" controls playsinline width="720">
   Your browser does not support the video element. Download the demo: [demo.mp4](./demo.mp4)
 </video>
 
 A short recording of the extractor running headful (shows title, channel, views extraction).
-
-> ⚠️ Large files: keep `demo.mp4` under your git size limits or use Git LFS for distribution.
 
 ## What it extracts 🔍
 
