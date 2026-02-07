@@ -2,6 +2,8 @@
 
 A small Node.js utility that extracts visible data from a YouTube video page (title, channel, views, comments) and can scrape live chat messages. The project uses Playwright for reliable page rendering and a set of focused page extractors in `youtube-page.js`.
 
+<img src="./demo.gif" width="720" alt="Demo GIF">
+
 ## Quick start
 
 1. Install dependencies:
@@ -31,12 +33,6 @@ A small Node.js utility that extracts visible data from a YouTube video page (ti
    ```bash
    PLAYWRIGHT_HEADLESS=false npm start
    ```
-
-## Demo ▶️
-
-<img src="./demo.gif" width="720" alt="Demo GIF">
-
-A short recording of the extractor running headful (shows title, channel, views extraction).
 
 ## What it extracts 🔍
 
