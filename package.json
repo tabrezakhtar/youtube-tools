@@ -1,0 +1,27 @@
+{
+  "name": "youtube-tools",
+  "version": "1.0.0",
+  "description": "This Node.js script scrapes live chat messages from a YouTube live stream without using the YouTube Data API or requiring an API key. It uses Puppeteer to extract chat messages directly from the live stream's webpage and logs them to the console.",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tabrezakhtar/youtube-tools.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tabrezakhtar/youtube-tools/issues"
+  },
+  "homepage": "https://github.com/tabrezakhtar/youtube-tools#readme",
+  "dependencies": {
+    "chalk": "^5.6.2",
+    "inquirer": "^13.2.2",
+    "playwright": "^1.58.2"
+  }
+}
