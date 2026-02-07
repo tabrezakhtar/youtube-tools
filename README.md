@@ -30,7 +30,28 @@ A small Node.js utility that extracts visible data from a YouTube video page (ti
 - `title`, `channel`, `views`, `comments` from the video page
 - (optional) live chat messages when a live stream is active
 - Extractors avoid skeleton placeholders by waiting for rendered content
+## Intended use & data policy
 
+This project is intended for:
+
+- Demonstration
+- Research
+- Personal tooling
+- Learning Playwright
+
+Policy
+
+- [x] Scrape public metadata only
+
+Safe data this tool collects (examples):
+
+- Titles
+- Video IDs
+- Channel names
+- Thumbnails
+- Publish dates
+
+Do not attempt to access private, paid, age-gated, or members-only content. Obtain restricted data only through official APIs and with proper authorization. Respect YouTube's terms of service and applicable law; use this tool only for non-abusive, personal research or learning.
 ## Important files
 
 - `index.js` — CLI + orchestration
