@@ -70,6 +70,70 @@ export async function isLiveStream(page, { timeout = 8000 } = {}) {
   }
 }
 
+export async function getChatMessages(page, { limit = 10 } = {}) {
+  try {
+    await page.waitForTimeout(2000);
+
+    const chatFrame = await page.$("iframe#chatframe");
+    if (chatFrame) {
+      const frame = await chatFrame.contentFrame();
+      if (frame) {
+        await frame.waitForSelector("#items yt-live-chat-text-message-renderer", { timeout: 5000 }).catch(() => {});
+        
+        const messages = await frame.evaluate((maxMessages) => {
+          const chatRenderers = document.querySelectorAll("#items yt-live-chat-text-message-renderer");
+          const results = [];
+
+          for (let i = 0; i < Math.min(chatRenderers.length, maxMessages); i++) {
+            const renderer = chatRenderers[i];
+            const authorEl = renderer.querySelector("#author-name");
+            const messageEl = renderer.querySelector("#message");
+
+            if (authorEl && messageEl) {
+              const author = (authorEl.innerText || authorEl.textContent || "").trim();
+              const message = (messageEl.innerText || messageEl.textContent || "").trim();
+              if (author && message) {
+                results.push({ author, message });
+              }
+            }
+          }
+
+          return results;
+        }, limit);
+
+        return messages;
+      }
+    }
+
+    await page.waitForSelector("#items yt-live-chat-text-message-renderer", { timeout: 5000 }).catch(() => {});
+
+    const messages = await page.evaluate((maxMessages) => {
+      const chatRenderers = document.querySelectorAll("#items yt-live-chat-text-message-renderer");
+      const results = [];
+
+      for (let i = 0; i < Math.min(chatRenderers.length, maxMessages); i++) {
+        const renderer = chatRenderers[i];
+        const authorEl = renderer.querySelector("#author-name");
+        const messageEl = renderer.querySelector("#message");
+
+        if (authorEl && messageEl) {
+          const author = (authorEl.innerText || authorEl.textContent || "").trim();
+          const message = (messageEl.innerText || messageEl.textContent || "").trim();
+          if (author && message) {
+            results.push({ author, message });
+          }
+        }
+      }
+
+      return results;
+    }, limit);
+
+    return messages;
+  } catch (err) {
+    return [];
+  }
+}
+
 export async function getCommentsCount(page) {
   try {
     await page.evaluate(() => {

@@ -2,7 +2,7 @@ import inquirer from "inquirer";
 import chalk from "chalk";
 import playwright from "playwright";
 import ora from "ora";
-import { getTitle, getChannelName, getCommentsCount, getViews, isLiveStream } from "./youtube-page.js";
+import { getTitle, getChannelName, getCommentsCount, getViews, isLiveStream, getChatMessages } from "./youtube-page.js";
 import { launchPlaywright } from "./playwright-config.js";
 
 console.log(chalk.blue("Youtube Scraper."));
@@ -46,20 +46,32 @@ console.log(chalk.blue("Youtube Scraper."));
       { name: "title", fn: getTitle, color: "cyan" },
       { name: "channel", fn: getChannelName, color: "yellow" },
       { name: "views", fn: getViews, color: "magenta" },
-      { name: "comments", fn: getCommentsCount, color: "green" }
+      { name: "comments", fn: getCommentsCount, color: "green" },
+      { name: "chat", fn: getChatMessages, color: "blue" }
     ];
 
+    const isLive = await isLiveStream(page);
     let remaining = tasks.length;
     const promises = tasks.map(({ name, fn, color }) => (async () => {
       spinner.text = `getting ${name} (${remaining} remaining)`;
       try {
         let val;
-        if (name === "comments" && await isLiveStream(page)) {
-          val = "Page is a live stream";
+        if (name === "comments" && isLive) {
+          val = "page is a live stream";
+        } else if (name === "chat" && !isLive) {
+          return;
         } else {
           val = await fn(page);
         }
-        console.log(chalk[color](`${name.charAt(0).toUpperCase() + name.slice(1)}:`), val);
+        
+        if (name === "chat" && Array.isArray(val)) {
+          console.log(chalk[color](`\nChat Messages:`));
+          val.forEach((msg, idx) => {
+            console.log(chalk.gray(`  ${idx + 1}. ${msg.author}:`), msg.message);
+          });
+        } else {
+          console.log(chalk[color](`${name.charAt(0).toUpperCase() + name.slice(1)}:`), val);
+        }
       } catch (err) {
         console.error(chalk.red(`${name} error:`), err);
       } finally {

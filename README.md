@@ -37,7 +37,8 @@ A small Node.js utility that extracts visible data from a YouTube video page (ti
 ## What it extracts 🔍
 
 - `title`, `channel`, `views`, `comments` from the video page
-- (optional) live chat messages when a live stream is active
+- **Live-stream detection:** the scraper detects when a page is a live stream (checks chat elements, live badge, and URL patterns)
+- **Chat extraction (live only):** grabs top chat messages from `#items` once (username + message). Does not poll by default; `limit` is configurable
 - Extractors avoid skeleton placeholders by waiting for rendered content
 ## Intended use & data policy
 
