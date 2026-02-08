@@ -16,6 +16,60 @@ export async function getViews(page) {
   return normalize(raw, "views");
 }
 
+export async function isLiveStream(page, { timeout = 8000 } = {}) {
+  try {
+    const waitTimeout = typeof timeout === "number" ? timeout : 8000;
+    const found = await page.waitForFunction(
+      () => {
+        if (document.querySelector("body > yt-live-chat-app")) return true;
+        if (document.querySelector("yt-live-chat-app")) return true;
+        if (document.querySelector("yt-live-chat-renderer")) return true;
+        if (document.querySelector("#chat-container yt-live-chat-renderer")) return true;
+        if (document.querySelector("ytd-live-chat-frame")) return true;
+        if (document.querySelector("iframe#chatframe")) return true;
+        
+        const liveBadge = document.querySelector(".ytp-live-badge");
+        if (liveBadge && liveBadge.textContent && liveBadge.textContent.trim().toLowerCase().includes("live")) return true;
+        
+        const liveBadgeAlt = document.querySelector(".badge-style-type-live-now");
+        if (liveBadgeAlt) return true;
+        
+        const url = window.location.href;
+        if (url.includes("/live/") || url.includes("/live_stream")) return true;
+        
+        return false;
+      },
+      { timeout: waitTimeout }
+    ).catch(() => null);
+
+    if (found) return true;
+
+    const exists = await page.evaluate(() => {
+      if (document.querySelector("body > yt-live-chat-app")) return true;
+      if (document.querySelector("yt-live-chat-app")) return true;
+      if (document.querySelector("yt-live-chat-renderer")) return true;
+      if (document.querySelector("#chat-container yt-live-chat-renderer")) return true;
+      if (document.querySelector("ytd-live-chat-frame")) return true;
+      if (document.querySelector("iframe#chatframe")) return true;
+      
+      const liveBadge = document.querySelector(".ytp-live-badge");
+      if (liveBadge && liveBadge.textContent && liveBadge.textContent.trim().toLowerCase().includes("live")) return true;
+      
+      const liveBadgeAlt = document.querySelector(".badge-style-type-live-now");
+      if (liveBadgeAlt) return true;
+      
+      const url = window.location.href;
+      if (url.includes("/live/") || url.includes("/live_stream")) return true;
+      
+      return false;
+    });
+
+    return !!exists;
+  } catch {
+    return false;
+  }
+}
+
 export async function getCommentsCount(page) {
   try {
     await page.evaluate(() => {

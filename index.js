@@ -2,14 +2,14 @@ import inquirer from "inquirer";
 import chalk from "chalk";
 import playwright from "playwright";
 import ora from "ora";
-import { getTitle, getChannelName, getCommentsCount, getViews } from "./youtube-page.js";
+import { getTitle, getChannelName, getCommentsCount, getViews, isLiveStream } from "./youtube-page.js";
 import { launchPlaywright } from "./playwright-config.js";
 
 console.log(chalk.blue("Youtube Scraper."));
 
 (async () => {
   // For testing, you can hardcode a YouTube URL here. If left empty, the script will prompt you to enter one.
-  let url = "https://www.youtube.com/watch?v=AjWfY7SnMBI";
+  let url = "";
 
   if (!url) {
     const questions = [
@@ -53,7 +53,12 @@ console.log(chalk.blue("Youtube Scraper."));
     const promises = tasks.map(({ name, fn, color }) => (async () => {
       spinner.text = `getting ${name} (${remaining} remaining)`;
       try {
-        const val = await fn(page);
+        let val;
+        if (name === "comments" && await isLiveStream(page)) {
+          val = "Page is a live stream";
+        } else {
+          val = await fn(page);
+        }
         console.log(chalk[color](`${name.charAt(0).toUpperCase() + name.slice(1)}:`), val);
       } catch (err) {
         console.error(chalk.red(`${name} error:`), err);
